@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<settings>
+  <setting id="qualityPref" type="enum" label="30004" values="sd|hd|fhd|highest" default="1" />
+  <setting id="byDailymotionPlugin" type="bool" label="30005" default="false" />
+  <setting id="altParser" type="bool" label="30006" default="true" />
+  <setting id="root_url" type="text" label="30007" default="https://www.anibogo.com/" ></setting>
+</settings>
