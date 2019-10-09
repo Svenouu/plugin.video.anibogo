@@ -48,10 +48,9 @@ def search_list(searchTerms, url, page):
         keyboard = xbmc.Keyboard()
         keyboard.doModal()
         if (keyboard.isConfirmed()):
-            search_list(keyboard.getText(), '-')
+            search_list(keyboard.getText(), '-', page)
     else:
-        if url == '-' :
-            url = anibogo.ROOT_URL+'search?q=%s&page=%d' % (searchTerms, page)        
+        url = anibogo.ROOT_URL+'search?q=%s&page=%s' % (searchTerms, page)        
 
         result = anibogo.parseProgList(url, page)
         createVideoDirectory(result, searchTerms, True)
@@ -60,30 +59,27 @@ def search_list(searchTerms, url, page):
 
 @plugin.route('/category/<cate>/<url>/<page>/')
 def prog_list(cate, url, page):
+    #web_pdb.set_trace()
     anibogo.ROOT_URL = url_root
-
-    if url == '-' :
-        url = anibogo.ROOT_URL+'%s?page=%d' % (cate, page)
-
+    url = anibogo.ROOT_URL+'%s?page=%s' % (cate, page)
     result = anibogo.parseProgList(url, page)
     createVideoDirectory(result, cate, False)
 
 @plugin.route('/episode/<url>/<page>/')
 def episode_list(url, page):
-    anibogo.ROOT_URL = url_root
-
-    if url == '-' :
-        url = anibogo.ROOT_URL+'?page=%d' % (page)
-
+    if url.find('?') != -1:
+        url = url[:url.find('?')]+'?page=%s' % (page)
+    else:
+        url = url+'?page=%s' % (page)
     result = anibogo.parseEpisodeList(url, page)
-    createVideoDirectory(result)
+    createEpisodeDirectory(result)
 
 def createVideoDirectory(result, cateOrSearchTerms, isSearch):
     listing = []
     for video in result['link']:
         list_item = xbmcgui.ListItem(label=video['title'], thumbnailImage=video['thumbnail'])
         list_item.setInfo('video', {'title': video['title']})
-        if cateOrSearchTerms == 'movie':
+        if cateOrSearchTerms == 'movies':
             url = plugin.url_for('video_list', url=video['url'])
         else:
             url = plugin.url_for('episode_list', url=video['url'], page=video['page'])

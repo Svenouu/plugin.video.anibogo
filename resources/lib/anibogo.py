@@ -23,28 +23,33 @@ def parseProgList(main_url, currentPage):
     resp = urllib2.urlopen(req)
     doc = resp.read()
     resp.close()
-    soup = BeautifulSoup(doc, from_encoding='utf-8')
+    if 'top10' in main_url:
+        html = re.search('\$\(\".content-trending\"\).html\(\'(.+?)\'\)', doc)
+    else:
+        html = re.search('\$\(\".content-new\"\).html\(\'(.+?)\'\)', doc)
+    
+    soup = BeautifulSoup(html.group(1), from_encoding='utf-8')
 
     result = {'link':[]}
-    for item in soup.find("div", {"class":"bao"}):
+    for item in soup.findAll("div", {"class":"bao"}):
         thumb = ""
         imgHtml = item.find_next('img')
         if imgHtml:
             thumb = imgHtml['data-src']
         aHtml = item.find_next('a')
         if aHtml:
-            pHtml = item.find_next('strong')
-            if pHtml:
-                title = pHtml.text
-            url = ROOT_URL + aHtml['href']
+            pHtml = item.find_next('p')
+            if pHtml and pHtml.strong:
+                title = pHtml.strong.text
+            url = ROOT_URL + aHtml['href'][1:]
             result['link'].append({'title':title, 'cate':'video', 'url':url, 'page':1, 'thumbnail':thumb})
 
     # navigation
     if currentPage:
-        if currentPage != 1:
-            result['prevpage'] = {'url': main_url, 'currentPage':currentPage - 1}
+        if int(currentPage) != 1:
+            result['prevpage'] = {'url': main_url, 'currentPage':int(currentPage) - 1}
         
-        result['nextpage'] = {'url': main_url, 'currentPage':currentPage + 1}
+        result['nextpage'] = {'url': main_url, 'currentPage':int(currentPage) + 1}
     return result
 
 def parseEpisodeList(main_url, currentPage):
@@ -54,14 +59,19 @@ def parseEpisodeList(main_url, currentPage):
     resp = urllib2.urlopen(req)
     doc = resp.read()
     resp.close()
-    soup = BeautifulSoup(doc, from_encoding='utf-8')
+    html = re.search('\$\(\".content-parts\"\).html\(\'(.+?)\'\)', doc)
+     
+    soup = BeautifulSoup(html.group(1), from_encoding='utf-8')
 
     result = {'link':[]}
-    for item in soup.find("div", {"class":"thumbnail1"}):
+    for item in soup.findAll("div", {"class":"thumbnail1"}):
         thumb = ""
         imgHtml = item.find_next('img')
         if imgHtml:
-            thumb = imgHtml['src']
+            if 'data-src' in str(imgHtml):
+                thumb = imgHtml['data-src']
+            else:
+                thumb = imgHtml['src']
         aHtml = item.find_next('a')
         if aHtml:
             pHtml = item.find_next('strong')
@@ -72,10 +82,10 @@ def parseEpisodeList(main_url, currentPage):
 
     # navigation
     if currentPage:
-        if currentPage != 1:
-            result['prevpage'] = currentPage - 1
+        if int(currentPage) != 1:
+            result['prevpage'] = {'url': main_url, 'currentPage':int(currentPage) - 1}
         
-        result['nextpage'] = currentPage + 1
+        result['nextpage'] = {'url': main_url, 'currentPage':int(currentPage) + 1}
     return result
 
 def parseVideoList(main_url):
@@ -85,7 +95,8 @@ def parseVideoList(main_url):
     resp = urllib2.urlopen(req)
     doc = resp.read()
     resp.close()
-    soup = BeautifulSoup(doc, from_encoding='utf-8')
+    html = re.search('\$\(\".content-player\"\).html\(\'(.+?)\'\)', doc)    
+    soup = BeautifulSoup(html.group(1), from_encoding='utf-8')
     result = []
     iframe = soup.find("iframe")
     
