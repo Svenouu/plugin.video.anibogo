@@ -50,12 +50,14 @@ def search_list(searchTerms, url, page):
         if (keyboard.isConfirmed()):
             search_list(keyboard.getText(), '-', page)
     else:
-        url = anibogo.ROOT_URL+'search?q=%s&page=%s' % (searchTerms, page)        
+        url = anibogo.ROOT_URL+'search?q=%s&page=%s' % (urlEncodeNonAscii(searchTerms), page)        
 
         result = anibogo.parseProgList(url, page)
         createVideoDirectory(result, searchTerms, True)
     return main_menu()
 
+def urlEncodeNonAscii(b):
+    return re.sub('[\x80-\xFF]', lambda c: '%%%02x' % ord(c.group(0)), b)
 
 @plugin.route('/category/<cate>/<url>/<page>/')
 def prog_list(cate, url, page):
